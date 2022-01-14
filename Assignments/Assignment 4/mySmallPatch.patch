@@ -1,0 +1,286 @@
+diff --git a/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl b/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl
+index f6b57799c..426311ba5 100644
+--- a/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -368,8 +368,12 @@
+ 444	common	landlock_create_ruleset	sys_landlock_create_ruleset
+ 445	common	landlock_add_rule	sys_landlock_add_rule
+ 446	common	landlock_restrict_self	sys_landlock_restrict_self
+-447	common	memfd_secret		sys_memfd_secret
+-
++447	common	memfd_secret        sys_memfd_secret
++448 common  hello_world         sys_hello_world
++449 common  kernel_2d_memcpy    sys_kernel_2d_memcpy
++450 common  delay_sched_process sys_delay_sched_process
++451 common  writer          sys_writer
++452 common  reader          sys_reader
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+ # in x32 as compared to native x86_64.  These syscalls have numbers 512-547.
+diff --git a/linux-5.14.4/include/linux/sched.h b/linux-5.14.4/include/linux/sched.h
+index ec8d07d88..f7e6585f4 100644
+--- a/linux-5.14.4/include/linux/sched.h
++++ b/linux-5.14.4/include/linux/sched.h
+@@ -475,6 +475,9 @@ struct sched_entity {
+ 	u64				prev_sum_exec_runtime;
+ 
+ 	u64				nr_migrations;
++	u64				log_timestamp_flag;
++	u64				pid_of_process;
++	u64				delay_ms;
+ 
+ 	struct sched_statistics		statistics;
+ 
+diff --git a/linux-5.14.4/include/linux/syscalls.h b/linux-5.14.4/include/linux/syscalls.h
+index 69c9a7010..5e68dcb30 100644
+--- a/linux-5.14.4/include/linux/syscalls.h
++++ b/linux-5.14.4/include/linux/syscalls.h
+@@ -1378,4 +1378,5 @@ int __sys_getsockopt(int fd, int level, int optname, char __user *optval,
+ 		int __user *optlen);
+ int __sys_setsockopt(int fd, int level, int optname, char __user *optval,
+ 		int optlen);
++asmlinkage long sys_delay_sched_process(unsigned long pid_of_process,unsigned long delay_ms);
+ #endif
+diff --git a/linux-5.14.4/kernel/sched/core.c b/linux-5.14.4/kernel/sched/core.c
+index a2403432f..8325136f0 100644
+--- a/linux-5.14.4/kernel/sched/core.c
++++ b/linux-5.14.4/kernel/sched/core.c
+@@ -3956,6 +3956,9 @@ static void __sched_fork(unsigned long clone_flags, struct task_struct *p)
+ 	p->se.prev_sum_exec_runtime	= 0;
+ 	p->se.nr_migrations		= 0;
+ 	p->se.vruntime			= 0;
++	p->se.log_timestamp_flag = 0;
++	p->se.pid_of_process = 0;
++	p->se.delay_ms = 0;
+ 	INIT_LIST_HEAD(&p->se.group_node);
+ 
+ #ifdef CONFIG_FAIR_GROUP_SCHED
+diff --git a/linux-5.14.4/kernel/sched/fair.c b/linux-5.14.4/kernel/sched/fair.c
+index 30a6984a5..9cdf7eaa0 100644
+--- a/linux-5.14.4/kernel/sched/fair.c
++++ b/linux-5.14.4/kernel/sched/fair.c
+@@ -811,8 +811,14 @@ static void update_curr(struct cfs_rq *cfs_rq)
+ 	curr->sum_exec_runtime += delta_exec;
+ 	schedstat_add(cfs_rq->exec_clock, delta_exec);
+ 
+-	curr->vruntime += calc_delta_fair(delta_exec, curr);
+-	update_min_vruntime(cfs_rq);
++	if(curr->delay_ms!=0){
++		curr->vruntime += calc_delta_fair(delta_exec, curr)+(curr->delay_ms*1000000);
++		update_min_vruntime(cfs_rq);
++	}
++	else{
++		curr->vruntime += calc_delta_fair(delta_exec, curr);
++		update_min_vruntime(cfs_rq);
++	}
+ 
+ 	if (entity_is_task(curr)) {
+ 		struct task_struct *curtask = task_of(curr);
+@@ -4534,6 +4540,12 @@ pick_next_entity(struct cfs_rq *cfs_rq, struct sched_entity *curr)
+ 		se = cfs_rq->last;
+ 	}
+ 
++	if(se->log_timestamp_flag!=0){
++		s64 now = ktime_to_ns(ktime_get_real());
++		u64 pid_of_process_temp = se->pid_of_process; 
++		printk(KERN_INFO "Scheduled process with PID %lu at time: %ld (ns)\n", pid_of_process_temp, now);
++	}
++
+ 	return se;
+ }
+ 
+diff --git a/linux-5.14.4/kernel/sys.c b/linux-5.14.4/kernel/sys.c
+index ef1a78f5d..003f6323c 100644
+--- a/linux-5.14.4/kernel/sys.c
++++ b/linux-5.14.4/kernel/sys.c
+@@ -41,6 +41,7 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/version.h>
+ #include <linux/ctype.h>
++#include <linux/module.h>
+ #include <linux/syscall_user_dispatch.h>
+ 
+ #include <linux/compat.h>
+@@ -51,6 +52,7 @@
+ #include <linux/binfmts.h>
+ 
+ #include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/autogroup.h>
+ #include <linux/sched/loadavg.h>
+ #include <linux/sched/stat.h>
+@@ -74,6 +76,9 @@
+ 
+ #include "uid16.h"
+ 
++#include <stdbool.h>
++#include <linux/proc_fs.h>
++
+ #ifndef SET_UNALIGN_CTL
+ # define SET_UNALIGN_CTL(a, b)	(-EINVAL)
+ #endif
+@@ -200,6 +205,164 @@ static int set_one_prio(struct task_struct *p, int niceval, int error)
+ 	return error;
+ }
+ 
++SYSCALL_DEFINE1(hello_world, char*, msg)
++{
++	char buf[265];
++	long copied = strncpy_from_user(buf, msg, sizeof(buf));
++	if(copied<0 || copied == sizeof(buf)){
++		return -EFAULT;
++	}
++	printk(KERN_INFO "hello_world called with\"%s\"\n", buf);
++	return 0;
++}
++
++SYSCALL_DEFINE3(kernel_2d_memcpy, float*, src, float*, dest, unsigned long, myArrSize)
++{
++	float* myArr = (float*)kmalloc(myArrSize, GFP_KERNEL);
++	int my_ret_val = copy_from_user(myArr, src, myArrSize);
++
++	if(!myArr){
++		return -ENOMEM;
++	}
++
++	if(!access_ok(src, myArrSize)){
++		kfree(myArr);
++		return -EFAULT;
++	}
++	
++	if(!access_ok(dest, myArrSize)){
++		kfree(myArr);
++		return -EFAULT;
++	}
++
++	if(my_ret_val>0){
++		kfree(myArr);
++		return -EFAULT;
++	}
++
++	my_ret_val = copy_to_user(dest, myArr, myArrSize);
++
++	if(my_ret_val>0){
++		kfree(myArr);
++		return -EFAULT;
++	}
++
++	kfree(myArr);
++	return 0;
++}
++
++SYSCALL_DEFINE2(delay_sched_process,unsigned long,pid_of_process,unsigned long,delay_ms)
++{
++	if(delay_ms<0 || pid_of_process<0){
++		printk(KERN_INFO "Invalid value of delay time given!\n");
++		return -EFAULT;
++	}
++	
++	int myFlag = 0;
++	struct task_struct *p;
++	
++	for_each_process(p){
++		if((unsigned long)p->pid==pid_of_process){
++			p->se.pid_of_process = pid_of_process;
++			p->se.delay_ms = delay_ms;
++			p->se.log_timestamp_flag = 1;
++			printk(KERN_INFO "Fields has been updated for PID: %lu \n", pid_of_process);
++			myFlag = 1;
++		}
++	}
++	
++	if(myFlag == 0){
++		printk(KERN_INFO "No process with the given PID found!\n");
++		return -EFAULT;
++	}
++	
++	printk(KERN_INFO "System call finished!\n");
++	return 0;
++}
++
++struct custom_queue{
++	bool is_initial;
++	char* my_q;
++	long start_head;
++	long end_head;
++	struct mutex q_lock;
++};
++
++struct custom_queue my_queue;
++
++void initial_my_queue(void){
++	mutex_init(&my_queue.q_lock);
++	mutex_lock(&my_queue.q_lock);
++	my_queue.my_q = kmalloc(512, GFP_KERNEL);
++	my_queue.is_initial = true;
++	my_queue.start_head = 0;
++	my_queue.end_head = 0;
++	mutex_unlock(&my_queue.q_lock);
++}
++
++void queue_my_queue(char* my_data){
++	mutex_lock(&my_queue.q_lock);
++	if(my_queue.start_head>=500){
++		my_queue.start_head = 0;
++	}
++	memcpy(my_queue.my_q+my_queue.start_head, my_data, 8);
++	my_queue.start_head += 10;
++	mutex_unlock(&my_queue.q_lock);
++}
++
++int dequeue_my_queue(char* my_data){
++	mutex_lock(&my_queue.q_lock);
++	if(my_queue.end_head>=500){
++		my_queue.end_head = 0;
++	}
++	if(my_queue.start_head==my_queue.end_head){
++		printk(KERN_INFO"Queue 'my_queue' is Empty\n");
++		mutex_unlock(&my_queue.q_lock);
++		return -1;
++	}
++	else{
++		memcpy(my_data, my_queue.my_q+my_queue.end_head, 8);
++		my_queue.end_head += 10;
++	}
++	mutex_unlock(&my_queue.q_lock);
++	return 0;
++}
++
++SYSCALL_DEFINE1(writer, char *, my_data)
++{
++	if(my_queue.is_initial == false){
++		initial_my_queue();
++	}
++	char temp[16];
++  	int ret_val = copy_from_user(temp, my_data, 8);
++	if(ret_val!=0){
++		printk(KERN_INFO"Error while copying\n");
++		return -1;
++	}
++	queue_my_queue(temp);
++	return 0;
++}
++
++SYSCALL_DEFINE1(reader, char *, my_data)
++{
++	if(my_queue.is_initial == false){
++		initial_my_queue();
++	}
++	char temp[16];
++	int ret_val = dequeue_my_queue(temp);
++	if(ret_val!=0){
++		printk(KERN_INFO"Error while copying\n");
++		return -1;
++	}
++	
++	ret_val = copy_to_user(my_data, temp, 8);
++	if(ret_val!=0){
++		printk(KERN_INFO"Error while copying\n");
++		return -1;
++	}
++	return 0;
++}
++
+ SYSCALL_DEFINE3(setpriority, int, which, int, who, int, niceval)
+ {
+ 	struct task_struct *g, *p;

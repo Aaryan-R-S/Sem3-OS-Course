@@ -1,0 +1,75 @@
+Come into Linux directory
+$ make mrproper
+put .config in Linux directory
+$ make -j8 [OR $sudo pacman -S ccache and then $make -j10 CC="ccache gcc"]
+$ sudo make modules_install
+$ sudo cp  arch/x86_64/boot/bzImage /boot/vmlinuz-linux-5.14.3
+$ sudo cp System.map System.map-5.14.3
+$ sudo mkinitcpio -k 5.14.3 -g /boot/initramfs-linux-5.14.3.img
+$ sudo grub-mkconfig -o /boot/grub/grub.cfg
+$ sudo reboot
+
+------------------------
+Whole Process
+-----------------------
+
+Install Necessary Packages
+======================
+$ sudo pacman -S pahole bc cpio
+
+Download Linux Kernel 
+===================
+Download the Linux Kernel Source tarball ( VER 5.14.3)  from the following link (using wget or lynx browser) :
+https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.14.3.tar.xz
+
+Using wget
+-------------
+$ sudo pacman -Syu wget
+wget  https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.14.3.tar.xz
+
+Using lynx browser
+----------------------
+lynx https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.14.3.tar.xz 
+
+Use D to download -> SaveToDisk -> Enter
+
+Extracting the tarball
+=================
+Extract the tarball using the command :
+tar -xvf linux-5.14.3.tar.xz
+
+Setting up the config file
+====================
+Use lynx browser or wget to download the config file from my repo ( Issue with keyboard has already been fixed) :
+https://bit.ly/3kBUZhR
+
+Rename the file to .config and place it inside the Linux kernel source directory
+mv 3kBUZhR .config
+
+Compiling Linux Kernel
+==================
+Run `make` pr `make -j8` command to compile the Linux kernel
+
+Installing the modules
+==================
+$ sudo make modules_install
+
+Copying the compressed Image to the Boot Directory:
+==========================================
+$ sudo cp  arch/x86_64/boot/bzImage /boot/vmlinuz-linux-5.14.3
+
+Copy the System.map file
+====================
+$ sudo cp System.map System.map-5.14.3
+
+Preparing the initramfs image
+========================
+$ sudo mkinitcpio -k 5.14.3 -g /boot/initramfs-linux-5.14.3.img
+
+Detecting the Image ( Optional )
+=========================
+$ sudo grub-mkconfig -o /boot/grub/grub.cfg
+
+Reboot the System :
+================
+$ sudo reboot

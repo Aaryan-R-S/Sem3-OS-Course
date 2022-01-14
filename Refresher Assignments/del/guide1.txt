@@ -1,0 +1,79 @@
+1)
+// For windows ---
+// gcc q1.c
+// ./a.exe "del\ss.png" "del\indel\ss1.png" 
+
+// For linux ---
+// [Remember: use / (not \) for the linux and also chmmod +x q1.o]
+// gcc q1.c -o q1.o
+// ./q1.o "del/h1.c" "del/h2.c"
+// ./q1.o "del/Time Table-Add-Drop Monsoon 2021V5.pdf" "del/a.pdf"
+
+For Linux--
+# make run="q1" src="del/h1.c" dest="del/h2.c"
+# make run="q1" src="del/tt.pdf" dest="del/indel/tt_copy.pdf"
+
+2)
+make run="q2"
+Enter num 1: 5242465462666225
+Enter num 2: 25637363630356036
+Sum num 1 + num 2 = 30879829093022261
+
+3)
+make run="q3"
+Vars before swap d=3 j=-23 
+Vars after swap d=-23 j=3 
+Enter no of elements in the arrays:
+3
+2      
+3
+0
+3
+2
+3
+Arrays after swapping
+3 2 3 
+2 3 0
+
+4)
+make run="q4"
+Enter the string:
+235eacd345-14
+String before reversing = 235eacd345-14
+String after reversing = 41-543dcae532
+
+5)
+make run="q5"
+Enter no of elements in the array:
+8 
+4294967290
+4294967295
+10400
+0
+234
+1
+1441
+13551325524
+Sorted array is as follows:
+0 1 234 1441 10400 4294967290 4294967295 13551325524 
+Enter no of queries:
+6
+0
+Found at index 0 
+4294967290
+Found at index 5 
+4294967291
+Element not found!
+4294967295
+Found at index 6 
+13551325524     
+Found at index 7 
+234
+Found at index 2 
+
+# make clean
+
+
+
+
+

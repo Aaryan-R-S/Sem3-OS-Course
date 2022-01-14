@@ -1,0 +1,73 @@
+diff --git a/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl b/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl
+index f6b57799c..7fd224b44 100644
+--- a/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/linux-5.14.4/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -368,8 +368,9 @@
+ 444	common	landlock_create_ruleset	sys_landlock_create_ruleset
+ 445	common	landlock_add_rule	sys_landlock_add_rule
+ 446	common	landlock_restrict_self	sys_landlock_restrict_self
+-447	common	memfd_secret		sys_memfd_secret
+-
++447	common	memfd_secret        sys_memfd_secret
++448 common  hello_world         sys_hello_world
++449 common  kernel_2d_memcpy    sys_kernel_2d_memcpy
+ #
+ # Due to a historical design error, certain syscalls are numbered differently
+ # in x32 as compared to native x86_64.  These syscalls have numbers 512-547.
+diff --git a/linux-5.14.4/kernel/sys.c b/linux-5.14.4/kernel/sys.c
+index ef1a78f5d..c17c2a87b 100644
+--- a/linux-5.14.4/kernel/sys.c
++++ b/linux-5.14.4/kernel/sys.c
+@@ -200,6 +200,52 @@ static int set_one_prio(struct task_struct *p, int niceval, int error)
+ 	return error;
+ }
+ 
++SYSCALL_DEFINE1(hello_world, char*, msg)
++{
++	char buf[265];
++	long copied = strncpy_from_user(buf, msg, sizeof(buf));
++	if(copied<0 || copied == sizeof(buf)){
++		return -EFAULT;
++	}
++	printk(KERN_INFO, "hello_world called with\"%s\"\n", buf);
++	return 0;
++}
++
++SYSCALL_DEFINE3(kernel_2d_memcpy, float*, src, float*, dest, unsigned long, myArrSize)
++{
++	float* myArr = (float*)kmalloc(myArrSize, GFP_KERNEL);
++	int my_ret_val = copy_from_user(myArr, src, myArrSize);
++
++	if(!myArr){
++		return -ENOMEM;
++	}
++
++	if(!access_ok(src, myArrSize)){
++		kfree(myArr);
++		return -EFAULT;
++	}
++	
++	if(!access_ok(dest, myArrSize)){
++		kfree(myArr);
++		return -EFAULT;
++	}
++
++	if(my_ret_val>0){
++		kfree(myArr);
++		return -EFAULT;
++	}
++
++	my_ret_val = copy_to_user(dest, myArr, myArrSize);
++
++	if(my_ret_val>0){
++		kfree(myArr);
++		return -EFAULT;
++	}
++
++	kfree(myArr);
++	return 0;
++}
++
+ SYSCALL_DEFINE3(setpriority, int, which, int, who, int, niceval)
+ {
+ 	struct task_struct *g, *p;

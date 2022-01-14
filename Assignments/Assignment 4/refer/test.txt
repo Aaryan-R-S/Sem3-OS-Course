@@ -1,0 +1,102 @@
+
+//Mod starts here
+struct custom_msq{
+	char queue[1024];
+	long pos;
+	long rpos;
+	struct mutex lock;
+	bool init;
+};
+
+struct custom_msq custqu;
+
+void custu_init(struct custom_msq *mq){
+	// if ( != 0) {
+    //     printk(KERN_INFO"\n mutex init has failed\n");
+    // }
+	mutex_init(&(mq->lock));
+	mutex_lock(&(mq->lock));
+	mq->init = true;
+	mq->pos = 0;
+	mq->rpos = 0;
+	mutex_unlock(&(mq->lock));
+	
+}
+
+void custom_queue_write(struct custom_msq *mq, char* buf){
+
+	mutex_lock(&(mq->lock));
+	printk(KERN_INFO"\n JSR\n");
+	if(mq->pos<950){
+		printk(KERN_INFO"\n write prior pos %ld\n",mq->pos);
+		// copy_from_user(buf, mssg, 64)
+		memcpy(mq->queue + mq->pos,buf,64);
+		mq->pos = mq->pos + 64;
+		printk(KERN_INFO"\n write after pos %ld\n",mq->pos);
+	}
+	else{
+		printk(KERN_INFO"\n Queue full\n");
+		mq->pos = 0;
+	}
+	mutex_unlock(&(mq->lock));
+
+}
+
+void custom_queue_read(struct custom_msq *mq, char *buf){
+
+	mutex_lock(&(mq->lock));
+	if(mq->rpos<=950 && mq->rpos != mq->pos){
+		printk(KERN_INFO"\n read prior pos %ld\n",mq->pos);
+		memcpy(buf, (mq->queue + mq->rpos), 64);
+		mq->rpos = mq->rpos + 64;
+		printk(KERN_INFO"\n read after pos %ld\n",mq->pos);
+	}
+	else if((mq->rpos == mq->pos)){
+		printk(KERN_INFO"\n Empty Read\n");
+	}
+	else{
+		mq->rpos = 0;
+		printk(KERN_INFO"\n Queue empty\n");
+	}
+	mutex_unlock(&(mq->lock));
+}
+
+SYSCALL_DEFINE1(custom_writer, char *, mssg)
+{
+	if(custqu.init == false){
+		printk(KERN_INFO "In intializer with  \n");
+		custu_init(&custqu);
+	}
+	char buf[64];
+	//buf[64] = '\0';
+  	long copied = copy_from_user(buf, mssg, 64);
+  	if (copied !=0){
+		printk(KERN_INFO "Copy error\n");
+	}
+  	printk(KERN_INFO "In writer with with \"%s\"\n", buf);
+	custom_queue_write(&custqu,buf);
+	return 0;
+}
+
+SYSCALL_DEFINE1(custom_reader,char *,mssg)
+{
+	if(custqu.init == false){
+		printk(KERN_INFO "In intializer with with \n");
+		custu_init(&custqu);
+	}
+	char buf[64]; 
+	custom_queue_read(&custqu,buf);
+	long copied = copy_to_user(mssg,buf,64);
+	if (copied !=0){
+		printk(KERN_INFO "Copy error\n");
+	}
+	return 0;
+}
+//Mod ends here
+
+
+#Mod starts here
+449 common  custom_writer       sys_custom_writer
+450 common  custom_reader       sys_custom_reader
+#Mod ends here
+

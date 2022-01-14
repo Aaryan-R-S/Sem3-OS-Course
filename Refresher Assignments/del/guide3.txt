@@ -1,0 +1,47 @@
+1)
+chmod +x q1.sh
+./q1.sh dd mm yyyy
+
+
+2)
+chmod +x q2.sh
+./q2.sh operation operand1 operand2 (and more operands)
+
+
+3)
+
+
+(a)
+make run="q3_a"
+1 3 4 5 6 7 8 9 10 15 
+1 3 5 6 7 8 9 10 15 
+1 3 5 6 7 8 10 15 
+1 3 5 6 7 8 15 
+1 3 5 6 7 8 15 
+1 3 5 6 8 15 
+
+
+(b)
+make run="q3_b"
+30 20 10 25 40 50 
+10 20 25 30 40 50 
+20 10 30 25 
+10 20 25 30 
+25 20 30 
+20 25 30 
+...
+...
+
+
+
+4)
+make run="q4"
+5
+23
+-24
+35
+235
+12
+Enter 'b' for bubble sort and 's' for selection sort: s
+Sorted Array using selection sort:
+-24 12 23 35 235 

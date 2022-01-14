@@ -1,0 +1,264 @@
+1)
+
+(a)
+make run="q1_a"
+Matrix created...
+Matrix populated with random numbers... 
+9 8 7 3 6 2 10 
+2 9 7 1 
+8 9 8 6 9 10 
+5 6 10 
+2 8 2 8 4 10 7 
+4 8 
+Matrix displayed...
+
+
+
+(b)
+make run="q1_b"
+[Matrix created] 
+[Matrix populated with random numbers] 
+10 10 7 2 6 3 7 
+1 5 7 6 
+3 4 8 9 7 6 
+5 4 4 
+7 3 7 3 6 6 7 
+1 3 
+[Matrix displayed] 
+Enter the number of queries:
+1
+Enter the row number whose no of columns you want to change (1-6):
+1
+Enter the number of columns you want to have in the row 1 (currently 7 columns):
+1
+10 
+1 5 7 6 
+3 4 8 9 7 6 
+5 4 4 
+7 3 7 3 6 6 7 
+1 3 
+[Matrix displayed]
+
+
+
+2)
+
+(a)
+make run="q2_a"
+Enter the number of students:
+3
+Enter name:
+q
+Enter roll no:
+23
+Enter year of joining:
+2442
+Enter enrolled academic program:
+ree
+Name: q | Roll: 23 | Year of join: 2442 | Academic Program: ree
+Enter name:
+r 
+Enter roll no:
+35
+Enter year of joining:
+353
+Enter enrolled academic program:
+et
+Name: q | Roll: 23 | Year of join: 2442 | Academic Program: ree
+Name: r | Roll: 35 | Year of join: 353 | Academic Program: et
+Enter name:
+t
+Enter roll no:
+35
+Enter year of joining:
+35
+Enter enrolled academic program:
+fer
+Name: q | Roll: 23 | Year of join: 2442 | Academic Program: ree
+Name: r | Roll: 35 | Year of join: 353 | Academic Program: et
+Name: t | Roll: 35 | Year of join: 35 | Academic Program: fer
+Enter the number of queries:
+4
+Enter 'p' for printing the list of students and 's' for searching a student:
+p
+Name: q | Roll: 23 | Year of join: 2442 | Academic Program: ree
+Name: r | Roll: 35 | Year of join: 353 | Academic Program: et
+Name: t | Roll: 35 | Year of join: 35 | Academic Program: fer
+Enter 'p' for printing the list of students and 's' for searching a student:
+s
+Enter the name of student to search:
+r
+Entry of r is PRESENT in the list
+Name: r | Roll: 35 | Year of join: 353 | Academic Program: et
+Enter 'p' for printing the list of students and 's' for searching a student:
+s       
+Enter the name of student to search:
+ty
+Entry of ty is NOT PRESENT in the list
+Enter 'p' for printing the list of students and 's' for searching a student:
+s
+Enter the name of student to search:
+t
+Entry of t is PRESENT in the list
+Name: t | Roll: 35 | Year of join: 35 | Academic Program: fer
+
+
+
+(b)
+make run="q2_b"
+Enter the number of students:
+3
+Enter name:
+r
+Enter roll no:
+23
+Enter year of joining:
+235
+Enter enrolled academic program:
+svfw
+Name: r | Roll: 23 | Year of join: 235 | Academic Program: svfw
+Enter name:
+t
+Enter roll no:
+25
+Enter year of joining:
+645
+Enter enrolled academic program:
+wtg
+Name: r | Roll: 23 | Year of join: 235 | Academic Program: svfw
+Name: t | Roll: 25 | Year of join: 645 | Academic Program: wtg
+Enter name:
+u
+Enter roll no:
+35
+Enter year of joining:
+53
+Enter enrolled academic program:
+wteg
+Name: r | Roll: 23 | Year of join: 235 | Academic Program: svfw
+Name: t | Roll: 25 | Year of join: 645 | Academic Program: wtg
+Name: u | Roll: 35 | Year of join: 53 | Academic Program: wteg
+Enter the number of queries:
+3 
+Enter 'p' for printing the list of students and 's' for searching a student:
+p
+Name: r | Roll: 23 | Year of join: 235 | Academic Program: svfw
+Name: t | Roll: 25 | Year of join: 645 | Academic Program: wtg
+Name: u | Roll: 35 | Year of join: 53 | Academic Program: wteg
+Enter 'p' for printing the list of students and 's' for searching a student:
+s
+Enter the name of student to search:
+u
+Entry of u is PRESENT in the list
+Name: u | Roll: 35 | Year of join: 53 | Academic Program: wteg
+Enter 'p' for printing the list of students and 's' for searching a student:
+s
+Enter the name of student to search:
+h
+Entry of h is NOT PRESENT in the list
+
+
+
+(c1)
+make run="q2_c1"
+Enter the number of queries:
+5
+Enter 'p' for push operation, 'd' for pop operation and 's' for printing the stack top:
+d
+Stack is already empty!
+Enter 'p' for push operation, 'd' for pop operation and 's' for printing the stack top:
+p
+Enter unique key:
+4
+Enter 'p' for push operation, 'd' for pop operation and 's' for printing the stack top:
+p
+Enter unique key:
+56
+Enter 'p' for push operation, 'd' for pop operation and 's' for printing the stack top:
+d
+Enter 'p' for push operation, 'd' for pop operation and 's' for printing the stack top:
+s
+4 
+
+
+
+(c2)
+make run="q2_c2"
+Enter the number of queries:
+5
+Enter 'p' for enqueue operation, 'd' for dequeue operation and 's' for printing the queue:
+p
+Enter unique key:
+23
+Enter 'p' for enqueue operation, 'd' for dequeue operation and 's' for printing the queue:
+p
+Enter unique key:
+22
+Enter 'p' for enqueue operation, 'd' for dequeue operation and 's' for printing the queue:
+p
+Enter unique key:
+64
+Enter 'p' for enqueue operation, 'd' for dequeue operation and 's' for printing the queue:
+d
+Enter 'p' for enqueue operation, 'd' for dequeue operation and 's' for printing the queue:
+s
+22 64 
+
+
+
+
+
+3)
+make run="q3"
+Enter no of queries:
+5
+Enter a:
+34
+Enter b:
+54
+Enter '0' for add, '1' for subtract, '2' for multplication, '3' for division and '4' for exponentiation operation:
+0
+34+54 = 88
+Enter a:
+35
+Enter b:
+-234      
+Enter '0' for add, '1' for subtract, '2' for multplication, '3' for division and '4' for exponentiation operation:
+2
+35*-234 = -8190
+Enter a:
+65
+Enter b:
+25
+Enter '0' for add, '1' for subtract, '2' for multplication, '3' for division and '4' for exponentiation operation:
+1
+65-25 = 40
+Enter a:
+4
+Enter b:
+5
+Enter '0' for add, '1' for subtract, '2' for multplication, '3' for division and '4' for exponentiation operation:
+4
+4^5 = 1024
+Enter a:
+360
+Enter b:
+12
+Enter '0' for add, '1' for subtract, '2' for multplication, '3' for division and '4' for exponentiation operation:
+3
+360/12 = 30.000000
+
+
+
+
+5)
+make run="q5"
+5
+23
+-24
+35
+235
+12
+Enter 'b' for bubble sort and 's' for selection sort: s
+Sorted Array using selection sort:
+-24 12 23 35 235 
